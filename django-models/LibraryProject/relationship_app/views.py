@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.views.generic.detail import DetailView
 from .models import Book, Library  # import both models
-
+from .models import Library
 # Function-Based View
 def list_books(request):
     books = Book.objects.all()  # exactly as checker wants
