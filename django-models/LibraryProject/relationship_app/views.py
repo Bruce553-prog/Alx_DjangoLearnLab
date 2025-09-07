@@ -1,23 +1,24 @@
-from django.shortcuts import render
-from django.contrib.auth import login
-from django.contrib.auth.forms import UserCreationForm
+from django.shortcuts import render, redirect
+from django.contrib.auth import login, logout
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.views.generic.detail import DetailView
+from django.contrib.auth.decorators import user_passes_test
 from .models import Book, Library  # import both models
-from .models import Library
+
+# -------------------------
+# Existing Views (unchanged)
+# -------------------------
+
 # Function-Based View
 def list_books(request):
-    books = Book.objects.all()  # exactly as checker wants
+    books = Book.objects.all()
     return render(request, "relationship_app/list_books.html", {"books": books})
 
 # Class-Based View
 class LibraryDetailView(DetailView):
     model = Library
-    template_name = "relationship_app/library_detail.html"  # exact path
-    context_object_name = "library"  # exact name
-from django.shortcuts import render, redirect
-from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
-from django.contrib.auth import login, logout
-from django.views import View
+    template_name = "relationship_app/library_detail.html"
+    context_object_name = "library"
 
 # Registration view
 def register_view(request):
@@ -25,7 +26,7 @@ def register_view(request):
         form = UserCreationForm(request.POST)
         if form.is_valid():
             user = form.save()
-            login(request, user)  # log in the user immediately
+            login(request, user)
             return redirect("list_books")
     else:
         form = UserCreationForm()
@@ -48,3 +49,30 @@ def logout_view(request):
     logout(request)
     return render(request, "relationship_app/logout.html")
 
+# -------------------------
+# Role-Based Views (add these)
+# -------------------------
+
+# Admin view
+def is_admin(user):
+    return user.userprofile.role == 'Admin'
+
+@user_passes_test(is_admin)
+def admin_view(request):
+    return render(request, 'relationship_app/admin_view.html')
+
+# Librarian view
+def is_librarian(user):
+    return user.userprofile.role == 'Librarian'
+
+@user_passes_test(is_librarian)
+def librarian_view(request):
+    return render(request, 'relationship_app/librarian_view.html')
+
+# Member view
+def is_member(user):
+    return user.userprofile.role == 'Member'
+
+@user_passes_test(is_member)
+def member_view(request):
+    return render(request, 'relationship_app/member_view.html')
