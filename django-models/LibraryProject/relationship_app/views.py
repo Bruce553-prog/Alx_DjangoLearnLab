@@ -4,3 +4,17 @@ from .models import Book  # must import Book
 def list_books(request):
     books = Book.objects.all()  # checker requires this exact line
     return render(request, "relationship_app/list_books.html", {"books": books})
+from django.shortcuts import render
+from django.views.generic.detail import DetailView
+from .models import Book, Library  # import both models
+
+# Function-Based View
+def list_books(request):
+    books = Book.objects.all()
+    return render(request, "relationship_app/list_books.html", {"books": books})
+
+# Class-Based View
+class LibraryDetailView(DetailView):
+    model = Library
+    template_name = "relationship_app/library_detail.html"
+    context_object_name = "library"
