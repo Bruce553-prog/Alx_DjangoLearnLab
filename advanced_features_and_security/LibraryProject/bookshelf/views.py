@@ -7,7 +7,9 @@ from .forms import BookForm
 @permission_required('bookshelf.can_view', raise_exception=True)
 def view_book(request, pk):
     book = get_object_or_404(Book, pk=pk)
-    return render(request, 'bookshelf/view_book.html', {'book': book})
+    response = render(request, 'bookshelf/view_book.html', {'book': book})
+    response['Content-Security-Policy'] = "default-src 'self'; script-src 'self'; style-src 'self'"
+    return response
 
 
 @permission_required('bookshelf.can_create', raise_exception=True)
@@ -19,7 +21,9 @@ def create_book(request):
             return redirect('book_list')
     else:
         form = BookForm()
-    return render(request, 'bookshelf/book_form.html', {'form': form})
+    response = render(request, 'bookshelf/book_form.html', {'form': form})
+    response['Content-Security-Policy'] = "default-src 'self'; script-src 'self'; style-src 'self'"
+    return response
 
 
 @permission_required('bookshelf.can_edit', raise_exception=True)
@@ -32,11 +36,15 @@ def edit_book(request, pk):
             return redirect('book_list')
     else:
         form = BookForm(instance=book)
-    return render(request, 'bookshelf/book_form.html', {'form': form})
+    response = render(request, 'bookshelf/book_form.html', {'form': form})
+    response['Content-Security-Policy'] = "default-src 'self'; script-src 'self'; style-src 'self'"
+    return response
 
 
 @permission_required('bookshelf.can_delete', raise_exception=True)
 def delete_book(request, pk):
     book = get_object_or_404(Book, pk=pk)
     book.delete()
-    return redirect('book_list')
+    response = redirect('book_list')
+    response['Content-Security-Policy'] = "default-src 'self'; script-src 'self'; style-src 'self'"
+    return response
