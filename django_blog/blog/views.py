@@ -7,6 +7,9 @@ from django.views.generic import ListView, DetailView, CreateView, UpdateView, D
 from django.urls import reverse, reverse_lazy
 from .models import Post, Comment
 from .forms import UserRegisterForm, UserUpdateForm, ProfileUpdateForm, CommentForm
+from .forms import postForm
+from django.db.models import Q
+
 
 # User registration
 def register(request):
@@ -63,6 +66,7 @@ class PostDetailView(DetailView):
 class PostCreateView(LoginRequiredMixin, CreateView):
     model = Post
     fields = ["title", "content"]
+    form_class =postForm
     template_name = "blog/post_form.html"
 
     def form_valid(self, form):
@@ -73,6 +77,7 @@ class PostCreateView(LoginRequiredMixin, CreateView):
 class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Post
     fields = ["title", "content"]
+    form_class=postForm
     template_name = "blog/post_form.html"
 
     def form_valid(self, form):
@@ -159,3 +164,13 @@ class CommentCreateView(LoginRequiredMixin, CreateView):
 
     def get_success_url(self):
         return reverse("blog:post_detail", kwargs={"pk": self.object.post.pk})
+def search_posts(request):
+    query = request.GET.get('q')
+    results = Post.objects.filter(
+        Q(title__icontains=query) |
+        Q(content__icontains=query) |
+        Q(tags__name__icontains=query)
+    ).distinct() if query else Post.objects.none()
+
+    context = {'posts': results, 'query': query}
+    return render(request, 'blog/search_results.html', context)

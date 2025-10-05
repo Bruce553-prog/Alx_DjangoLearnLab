@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 from .models import Profile
 from .models import Post
 from .models import Comment
-
+from taggit.forms import Tagwidget
 class UserRegisterForm(UserCreationForm):
     
     email = forms.EmailField(
@@ -45,7 +45,9 @@ class ProfileUpdateForm(forms.ModelForm):
 class PostForm(forms.ModelForm):
     class Meta:
         model = Post
-        fields = ["title", "content"]
+        fields = ["title", "content",'tags']
+        widgets={'tittle':TagWidget(),
+                 }
 class CommentForm(forms.ModelForm):
     content = forms.CharField(
         widget=forms.Textarea(attrs={'rows': 3, 'placeholder': 'Write your comment...'}),
