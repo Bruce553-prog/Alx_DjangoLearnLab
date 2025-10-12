@@ -7,7 +7,13 @@ from django_filters.rest_framework import DjangoFilterBackend
 from .models import Post, Comment
 from .serializers import PostListSerializer, PostDetailSerializer, CommentSerializer
 from .permissions import IsOwnerOrReadOnly
-
+from rest_framework import generics, permissions
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from django.shortcuts import get_object_or_404
+from .models import Post, Like
+from notifications.models import Notification
+from django.contrib.contenttypes.models import ContentType
 
 class StandardResultsSetPagination(PageNumberPagination):
     page_size = 10
@@ -58,3 +64,39 @@ class FeedView(APIView):
 
         serializer = PostListSerializer(posts, many=True)
         return Response(serializer.data)
+class LikePostView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, pk):
+        post = get_object_or_404(Post, pk=pk)
+        user = request.user
+
+        # Check if already liked
+        if Like.objects.filter(user=user, post=post).exists():
+            return Response({'detail': 'Already liked this post.'}, status=400)
+
+        Like.objects.create(user=user, post=post)
+
+        # Create notification
+        Notification.objects.create(
+            recipient=post.author,
+            actor=user,
+            verb='liked your post',
+            target=post,
+        )
+
+        return Response({'detail': 'Post liked successfully.'})
+
+
+class UnlikePostView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, pk):
+        post = get_object_or_404(Post, pk=pk)
+        user = request.user
+
+        like = Like.objects.filter(user=user, post=post)
+        if like.exists():
+            like.delete()
+            return Response({'detail': 'Post unliked successfully.'})
+        return Response({'detail': 'You have not liked this post.'}, status=400)
