@@ -1,5 +1,7 @@
 from django.contrib import admin
-from .models import Post, Comment
+from posts.models import Post, Comment
+
+from .models import CustomUser
 
 @admin.register(Post)
 class PostAdmin(admin.ModelAdmin):
